@@ -28,3 +28,7 @@ code {
   margin: 12px;
   border-radius: 4px;
 }
+
+.mapboxgl-popup{
+ width: 300px;
+}
