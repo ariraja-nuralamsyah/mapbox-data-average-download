@@ -23,7 +23,7 @@ function getDataColor(){
     }else if(e.avg_download_throughput > 0 && e.avg_download_throughput <= 10000){
       data.push('#FFEBEE');
     }else{
-      data.push('#FFEBEE');
+      data.push('yellow');
     }
     return true;
   })
@@ -41,14 +41,16 @@ export default function App() {
     '0 - 5,000',
     '5,000 - 10,000',
     '10,000 - 15,000',
-    '15,000+'
+    '15,000+',
+    'NULL'
   ];
 
   const colors = [
       '#FFEBEE',
       '#FFCDD2',
       '#EF5350',
-      '#B71C1C'
+      '#B71C1C',
+      'yellow'
   ];
   
   useEffect(() => {
@@ -113,13 +115,14 @@ export default function App() {
         map.current.getCanvas().style.cursor = 'pointer';
         const kabupaten = e.features[0].properties.KABUPATEN
         const data = getData(kabupaten);
+        let avg = data[0].avg_download_throughput;
         // Copy coordinates array.
         const description = `
           <div>
             <p>Reg. <b>${data[0].region}</b></p>
             <h1>${data[0].location}</h1>
           </div>
-          <p><em><strong>${data[0].avg_download_throughput != null ? `<i>${(data[0].avg_download_throughput.toLocaleString(undefined,{maximumFractionDigits: 2}))} </i>` : '0'}</strong> Downloads</em></p>`;
+          <p><em><strong>${ avg != null ? `<i>${(avg.toLocaleString(undefined,{maximumFractionDigits: 2}))} </i> Downloads` : 'Data download tidak ada'}</strong></em></p>`;
         
         popup.setLngLat(e.lngLat).setHTML(description).addTo(map.current);
       });
