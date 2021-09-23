@@ -31,21 +31,27 @@ function getDataColor(){
   return data;
 }
 
-function getDataPersen(average){
-  let total = 0;
-  dataDownload.map((e) => { 
-    total += e.avg_download_throughput
-  })
-  return average/total * 100;
-}
-
-
 export default function App() {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [lng, setLng] = useState(112.616);
   const [lat, setLat] = useState(-7.88129);
   const [zoom, setZoom] = useState(7.65);
+  const layers = [
+    '0 - 5,000',
+    '5,000 - 10,000',
+    '10,000 - 15,000',
+    '15,000+',
+    'null'
+  ];
+
+  const colors = [
+      '#FFEBEE',
+      '#FFCDD2',
+      '#EF5350',
+      '#B71C1C',
+      'yellow'
+  ];
   
   useEffect(() => {
     if (map.current) return; // initialize map only once
@@ -86,16 +92,6 @@ export default function App() {
         }
       });
 
-      // Add a new layer to visualize the polygon.
-      // map.current.addLayer({
-      //   'id': 'label',
-      //   'type': 'symbol',
-      //   'source': 'kabupaten', // reference the data source
-      //   'layout': {
-      //     'text-field':['get', 'KABUPATEN']
-      //   }
-      // });
-
       map.current.addLayer({
         'id': 'state-borders',
         'type': 'line',
@@ -121,20 +117,12 @@ export default function App() {
         const data = getData(kabupaten);
         // Copy coordinates array.
         const description = `
-          <p>Region</p>
-          <b>${data[0].region}</b>
-          <p>Kabupaten</p>
-          <b>${data[0].location}</b>
-          <p>Average Download</p>
-          <b>${data[0].avg_download_throughput.toFixed(2)} (${getDataPersen(data[0].avg_download_throughput).toFixed(2)}%)</b>`;
+          <div>
+            <p>Reg. <b>${data[0].region}</b></p>
+            <h1>${data[0].location}</h1>
+          </div>
+          <b class="download">${data[0].avg_download_throughput != null ? `<i>${data[0].avg_download_throughput.toFixed(2)} </i>Downloads` : 'Data download tidak ada'}</b>`;
         
-        // Ensure that if the map is zoomed out such that multiple
-        // copies of the feature are visible, the popup appears
-        // over the copy being pointed to.
-        
-        
-        // Populate the popup and set its coordinates
-        // based on the feature found.
         popup.setLngLat(e.lngLat).setHTML(description).addTo(map.current);
       });
       
@@ -142,74 +130,24 @@ export default function App() {
         map.current.getCanvas().style.cursor = '';
         popup.remove();
       });
+
+      // create legend
+      const legend = document.getElementById('legend');
+
+      layers.forEach((layer, i) => {
+          const color = colors[i];
+          const item = document.createElement('div');
+          const key = document.createElement('span');
+          key.className = 'legend-key';
+          key.style.backgroundColor = color;
+
+          const value = document.createElement('span');
+          value.innerHTML = `${layer}`;
+          item.appendChild(key);
+          item.appendChild(value);
+          legend.appendChild(item);
+      });
       
-      // Add a data source containing GeoJSON data.
-      // map.current.addSource('jatim', {
-      //   'type': 'geojson',
-      //   'data': dataJatim
-      // });
-      
-      // // Add a new layer to visualize the polygon.
-      // map.current.addLayer({
-      //   'id': 'jatim',
-      //   'type': 'fill',
-      //   'source': 'jatim', // reference the data source
-      //   'layout': {},
-      //   'paint': {
-      //     'fill-color': "#ff7300", 
-      //     'fill-opacity': 0.2
-      //   }
-      // });
-      
-      // dataJawaTimur.data.map(item => {
-      //   // Add a data source containing GeoJSON data.
-      //   map.current.addSource(item.name, {
-      //     'type': 'geojson',
-      //     'data': {
-      //       'type': 'Feature',
-      //       'geometry': {
-      //         'type': item.type,
-      //         // These coordinates outline.
-      //         'coordinates': item.data,
-      //       },
-      //       'properties' : {
-      //         'name' : item.name
-      //       }
-      //     }
-      //   });
-      
-      //   // Add a new layer to visualize the polygon.
-      //   map.current.addLayer({
-      //     'id': item.name,
-      //     'type': 'fill',
-      //     'source': item.name, // reference the data source
-      //     'layout': {},
-      //     'paint': {
-      //       'fill-color': item.color, 
-      //       'fill-opacity': 0.5,
-      //       'fill-outline-color': '#000'
-      //     }
-      //   });
-      
-      //   map.current.on('click', item.name, (e) => {
-      //     new mapboxgl.Popup()
-      //     .setLngLat(e.lngLat)
-      //     .setHTML(e.features[0].properties.name)
-      //     .addTo(map.current);
-      //     });
-      
-      //     // Change the cursor to a pointer when
-      //     // the mouse is over the states layer.
-      //     map.current.on('mouseenter', item.name, () => {
-      //     map.current.getCanvas().style.cursor = 'pointer';
-      //     });
-      
-      //     // Change the cursor back to a pointer
-      //     // when it leaves the states layer.
-      //     map.current.on('mouseleave', item.name, () => {
-      //     map.current.getCanvas().style.cursor = '';
-      //     });
-      // })
     });
   });
   
@@ -219,6 +157,7 @@ export default function App() {
     Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
     </div>
     <div ref={mapContainer} className="map-container" />
+    <div className='map-overlay' id='legend'></div>
     </div>
     );
   }
