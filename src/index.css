@@ -13,7 +13,7 @@ code {
 }
 
 .map-container {
-  height: 780px;
+  height: 625px;
 }
 
 .sidebar {
@@ -50,10 +50,10 @@ code {
 #legend {
   padding: 10px;
   line-height: 18px;
-  height: 75px;
-  right: 0px;
+  height: 110px;
+  right: 15px;
   top : 0px;
-  width: 150px;
+  width: 200px;
 }
 
 .legend-key {

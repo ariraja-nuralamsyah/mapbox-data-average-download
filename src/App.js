@@ -6,10 +6,6 @@ import dataKabupaten from './dataJson/kabupaten.geojson'
 import dataDownload from './dataJson/data-download.json'
 mapboxgl.accessToken = 'pk.eyJ1Ijoia2FzaGlraTIyNTEyMSIsImEiOiJja3QzcThmMTUwa2J3MzJudDdnaDVpeG5mIn0.MiGBhPWKUsgW4Y7gbw4pQA';
 
-function getData(kabupaten){
-  return dataDownload.filter(item => item.location === kabupaten);
-}
-
 function getDataColor(){
   let data = [];
   data.push('match');
@@ -42,7 +38,8 @@ export default function App() {
     '5,000 - 10,000',
     '10,000 - 15,000',
     '15,000+',
-    'NULL'
+    'Null',
+    'Data kota tidak ada'
   ];
 
   const colors = [
@@ -50,7 +47,8 @@ export default function App() {
       '#FFCDD2',
       '#EF5350',
       '#B71C1C',
-      'yellow'
+      'yellow',
+      'white'
   ];
   
   useEffect(() => {
@@ -88,9 +86,10 @@ export default function App() {
         'source': 'kabupaten', // reference the data source
         'layout': {},
         'paint': {
-          'fill-color': getDataColor()
+          'fill-color': getDataColor(),
+          'fill-opacity': 1
         }
-      });
+      },'waterway-label');
 
       map.current.addLayer({
         'id': 'state-borders',
@@ -101,7 +100,7 @@ export default function App() {
           'line-color': '#000',
           'line-width': 0.1
         }
-      });
+      },'waterway-label');
       
       // Create a popup, but don't add it to the map yet.
       const popup = new mapboxgl.Popup({
@@ -111,18 +110,22 @@ export default function App() {
       });
       
       map.current.on('mousemove', 'kabupaten', (e) => {
-        // Change the cursor style as a UI indicator.
         map.current.getCanvas().style.cursor = 'pointer';
         const kabupaten = e.features[0].properties.KABUPATEN
-        const data = getData(kabupaten);
-        let avg = data[0].avg_download_throughput;
-        // Copy coordinates array.
-        const description = `
-          <div>
-            <p>Reg. <b>${data[0].region}</b></p>
-            <h1>${data[0].location}</h1>
-          </div>
-          <p><em><strong>${ avg != null ? `<i>${(avg.toLocaleString(undefined,{maximumFractionDigits: 2}))} </i> Downloads` : 'Data download tidak ada'}</strong></em></p>`;
+        const data = dataDownload.filter(item => item.location === kabupaten);
+        let avg = data[0] != null ? data[0].avg_download_throughput : null;
+        const description = 
+          data[0] != null 
+          ? 
+          `
+            <div>
+              <p>Reg. <b>${data[0].region}</b></p>
+              <h1>${data[0].location}</h1>
+            </div>
+            <p><em><strong>${ avg != null ? `<i>${(avg.toLocaleString(undefined,{maximumFractionDigits: 2}))} </i> Downloads` : 'Data download tidak ada'}</strong></em></p>
+          `
+          :
+          `<div><h1>Data Kota Tidak ada</h1></div>`;
         
         popup.setLngLat(e.lngLat).setHTML(description).addTo(map.current);
       });
@@ -141,6 +144,7 @@ export default function App() {
           const key = document.createElement('span');
           key.className = 'legend-key';
           key.style.backgroundColor = color;
+          key.style.border = '1px black solid'
 
           const value = document.createElement('span');
           value.innerHTML = `${layer}`;
